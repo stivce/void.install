@@ -14,9 +14,10 @@ KEYMAP=us
 
 # Locale is hardcoded to en_US.UTF-8 by the installer, independent of keymap.
 
-# Leave USER_PASSWORD_HASH unset/blank and void-install.sh will prompt for
-# it interactively (via generate-password.sh) and write it back here.
-USER_PASSWORD_HASH='$6$7hLp2Xr4$Kq9wTbHn3sVdRmZ8cJfLp1eXaGz0oYnQtWbUiRkDvSlPmXjNc2FhYzLq5rTgBoWn9sKvXm1'
+# Left unset: void-install.sh will prompt for it interactively (via
+# generate-password.sh) and write it back here. To set it ahead of time
+# instead, uncomment and fill in a real hash from 'openssl passwd -6'.
+# USER_PASSWORD_HASH='$6$saltsalt$therealhashgoeshere'
 
 # Root's password defaults to the same hash as USER_PASSWORD_HASH above.
 # Uncomment to give root a different password instead.
