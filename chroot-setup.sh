@@ -20,8 +20,8 @@ sed -i "s/^KEYMAP=.*/KEYMAP=\"$CHR_KEYMAP\"/" /etc/rc.conf 2>/dev/null \
 xbps-install -Sy $CHR_PACKAGES >/dev/null
 sed -i 's/^# *%wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/' /etc/sudoers
 
-ln -sf /etc/sv/dhcpcd /etc/service/
-ln -sf /etc/sv/sshd /etc/service/
+ln -sf /etc/sv/dhcpcd /etc/runit/runsvdir/default/
+ln -sf /etc/sv/sshd /etc/runit/runsvdir/default/
 
 useradd -m -G wheel -s /bin/bash "$CHR_USERNAME"
 echo "root:$CHR_ROOT_HASH" | chpasswd -e

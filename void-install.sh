@@ -14,7 +14,7 @@ readonly MNT="/mnt"
 readonly REPO="https://repo-default.voidlinux.org/current"
 
 readonly REQUIRED_BINARIES=(sfdisk mkfs.btrfs mkfs.vfat xbps-install chroot blkid blockdev udevadm)
-readonly REQUIRED_CONF_VARS=(HOSTNAME USERNAME USER_PASSWORD_HASH ROOT_PASSWORD_HASH TIMEZONE KEYMAP)
+readonly REQUIRED_CONF_VARS=(HOSTNAME USERNAME USER_PASSWORD_HASH TIMEZONE KEYMAP)
 readonly CHROOT_PACKAGES=(sudo grub-x86_64-efi python3 openssh btrfs-progs fastfetch)
 
 log() { printf '\n\033[1;32m==>\033[0m %s\n' "$*"; }
@@ -63,6 +63,8 @@ load_config() {
   done
 
   [ -f "/usr/share/zoneinfo/$TIMEZONE" ] || die "Unknown timezone: $TIMEZONE"
+
+  ROOT_PASSWORD_HASH="${ROOT_PASSWORD_HASH:-$USER_PASSWORD_HASH}"
   validate_hash "ROOT_PASSWORD_HASH" "$ROOT_PASSWORD_HASH"
   validate_hash "USER_PASSWORD_HASH" "$USER_PASSWORD_HASH"
 

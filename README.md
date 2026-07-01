@@ -12,8 +12,8 @@ Minimal unattended-ish installer for Void Linux (glibc, UEFI only).
 - Sets hostname, timezone, keymap, locale (en_US.UTF-8)
 - Creates root and one regular user (wheel + sudo) from pre-hashed passwords
 - Installs and configures GRUB (UEFI)
-- Enables (symlinks into `/etc/service`) `dhcpcd` and `sshd` so both start
-  automatically on first boot
+- Enables (symlinks into `/etc/runit/runsvdir/default`) `dhcpcd` and
+  `sshd` so both start automatically on first boot
 
 No desktop environment, no encryption, no LVM. Console-only base system —
 add whatever else you want after first boot.
@@ -67,8 +67,8 @@ add whatever else you want after first boot.
    straight into the right line of `void.cfg`:
 
    ```sh
-   ./generate-password.sh root   # sets ROOT_PASSWORD_HASH
    ./generate-password.sh user   # sets USER_PASSWORD_HASH
+   ./generate-password.sh root   # optional, sets a separate ROOT_PASSWORD_HASH
    ```
 
    Example filled-in `void.cfg` (US keymap, Vienna timezone;
@@ -80,8 +80,9 @@ add whatever else you want after first boot.
    TIMEZONE=Europe/Vienna
    KEYMAP=us
 
-   ROOT_PASSWORD_HASH='$6$3kQ9mZs1$V1n8pS...j0'
    USER_PASSWORD_HASH='$6$7hLp2Xr4$Kq9wTb...z2'
+
+   # ROOT_PASSWORD_HASH='$6$3kQ9mZs1$V1n8pS...j0'   # optional, defaults to USER_PASSWORD_HASH
 
    # Optional, defaults shown:
    # BOOT_SIZE_MB=254
@@ -105,8 +106,7 @@ add whatever else you want after first boot.
    partition or active swap — which covers the live boot media itself,
    however it was booted (USB stick, ISO, etc).
 
-6. Type the disk path again to confirm the wipe. Everything else runs
-   unattended.
+6. Confirm the wipe (`y`/`N`). Everything else runs unattended.
 
 7. Reboot into the disk when it finishes.
 
@@ -122,6 +122,8 @@ add whatever else you want after first boot.
   4096MiB minimum root (override with `MIN_ROOT_MB=...`).
 - Password hashes in the config are sanity-checked against the general
   `$id$salt$hash` crypt format before anything is touched.
+- `ROOT_PASSWORD_HASH` is optional and defaults to `USER_PASSWORD_HASH` —
+  set it explicitly only if root should have a different password.
 - Checks connectivity to the Void repo before doing anything destructive,
   so a missing network fails fast instead of partway through the install.
 
