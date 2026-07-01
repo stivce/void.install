@@ -24,8 +24,8 @@ add whatever else you want after first boot.
 - `chroot-setup.sh` — the part that runs inside the target system via
   `chroot`; must stay next to `void-install.sh`, not run standalone
 - `generate-password.sh` — optional helper to hash a password and write it
-  into `void-install.conf` (see below)
-- `void-install.conf.example` — copy to `void-install.conf` and fill in
+  into `void.cfg` (see below)
+- `void.cfg.example` — copy to `void.cfg` and fill in
 
 ## Requirements
 
@@ -54,7 +54,7 @@ add whatever else you want after first boot.
 3. Copy the example config and fill it in:
 
    ```sh
-   cp void-install.conf.example void-install.conf
+   cp void.cfg.example void.cfg
    ```
 
    Generate password hashes with `openssl` directly:
@@ -64,14 +64,14 @@ add whatever else you want after first boot.
    ```
 
    or use the helper, which prompts for the password and writes the hash
-   straight into the right line of `void-install.conf`:
+   straight into the right line of `void.cfg`:
 
    ```sh
    ./generate-password.sh root   # sets ROOT_PASSWORD_HASH
    ./generate-password.sh user   # sets USER_PASSWORD_HASH
    ```
 
-   Example filled-in `void-install.conf` (US keymap, Vienna timezone;
+   Example filled-in `void.cfg` (US keymap, Vienna timezone;
    locale is hardcoded to en_US.UTF-8 by the script regardless of keymap):
 
    ```sh
@@ -114,7 +114,7 @@ add whatever else you want after first boot.
 
 - Boot (ESP) partition defaults to 254MiB, swap to 8GiB; override by
   setting `BOOT_SIZE_MB=...` / `SWAP_SIZE_MB=...` (in MiB) in
-  `void-install.conf`. `SWAP_SIZE_MB=0` skips the swap partition entirely
+  `void.cfg`. `SWAP_SIZE_MB=0` skips the swap partition entirely
   (root then becomes partition 2 instead of 3).
 - Only supports UEFI boot and the glibc repo — the script checks for both
   and exits with a clear error if either assumption doesn't hold.

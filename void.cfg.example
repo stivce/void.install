@@ -1,5 +1,5 @@
-# Copy this file to void-install.conf and fill in your own values.
-# void-install.conf is gitignored so real secrets/hostnames don't get committed.
+# Copy this file to void.cfg and fill in your own values.
+# void.cfg is gitignored so real secrets/hostnames don't get committed.
 #
 # Password hashes must be quoted with SINGLE quotes — they contain literal
 # '$' characters which bash would otherwise try to expand as variables.

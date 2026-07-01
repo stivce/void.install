@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
 # generate-password.sh — prompt for a password, hash it, write it into
-# void-install.conf. Keeps void-install.sh itself fully non-interactive.
+# void.cfg. Keeps void-install.sh itself fully non-interactive.
 #
-# Usage: ./generate-password.sh root|user [path/to/void-install.conf]
+# Usage: ./generate-password.sh root|user [path/to/void.cfg]
 
 set -euo pipefail
 
@@ -11,7 +11,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 die() { printf '\n\033[1;31mxx\033[0m %s\n' "$*" >&2; exit 1; }
 
-usage() { die "Usage: $0 root|user [path/to/void-install.conf]"; }
+usage() { die "Usage: $0 root|user [path/to/void.cfg]"; }
 
 [ $# -ge 1 ] || usage
 case "$1" in
@@ -20,8 +20,8 @@ case "$1" in
   *) usage ;;
 esac
 
-CONF="${2:-$SCRIPT_DIR/void-install.conf}"
-[ -f "$CONF" ] || die "$CONF not found — copy void-install.conf.example to void-install.conf first."
+CONF="${2:-$SCRIPT_DIR/void.cfg}"
+[ -f "$CONF" ] || die "$CONF not found — copy void.cfg.example to void.cfg first."
 
 command -v openssl >/dev/null 2>&1 || die "openssl is required to hash the password."
 

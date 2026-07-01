@@ -3,7 +3,7 @@
 # void-install.sh — minimal unattended Void Linux (glibc, UEFI) installer.
 #
 # Run as root from the Void live ISO. Reads hostname/user/timezone/keymap/
-# password hashes from a config file (see void-install.conf.example); the
+# password hashes from a config file (see void.cfg.example); the
 # only interactive steps are picking the disk (TUI) and confirming the wipe.
 
 set -euo pipefail
@@ -52,8 +52,8 @@ validate_hash() {
 }
 
 load_config() {
-  CONF="${1:-$SCRIPT_DIR/void-install.conf}"
-  [ -f "$CONF" ] || die "Config file not found: $CONF (copy void-install.conf.example and edit it)."
+  CONF="${1:-$SCRIPT_DIR/void.cfg}"
+  [ -f "$CONF" ] || die "Config file not found: $CONF (copy void.cfg.example and edit it)."
   # shellcheck disable=SC1090
   source "$CONF"
 
@@ -145,8 +145,11 @@ check_disk_size() {
 
 confirm_wipe() {
   local confirm
-  read -rp "This will ERASE ALL DATA on $DISK ($(lsblk -dno SIZE "$DISK")). Type the disk path to confirm: " confirm
-  [ "$confirm" = "$DISK" ] || die "Confirmation mismatch — aborting, nothing touched."
+  read -rp "This will ERASE ALL DATA on $DISK ($(lsblk -dno SIZE "$DISK")). Continue? [y/N] " confirm
+  case "$confirm" in
+    y | Y | yes | YES) ;;
+    *) die "Aborting, nothing touched." ;;
+  esac
 }
 
 # ---------------------------------------------------------------------------
