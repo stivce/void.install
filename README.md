@@ -18,6 +18,15 @@ Minimal unattended-ish installer for Void Linux (glibc, UEFI only).
 No desktop environment, no encryption, no LVM. Console-only base system —
 add whatever else you want after first boot.
 
+## Files
+
+- `void-install.sh` — the installer; run this on the live ISO
+- `chroot-setup.sh` — the part that runs inside the target system via
+  `chroot`; must stay next to `void-install.sh`, not run standalone
+- `generate-password.sh` — optional helper to hash a password and write it
+  into `void-install.conf` (see below)
+- `void-install.conf.example` — copy to `void-install.conf` and fill in
+
 ## Requirements
 
 - Booted from the official Void Linux **glibc** live ISO in **UEFI** mode
@@ -48,10 +57,18 @@ add whatever else you want after first boot.
    cp void-install.conf.example void-install.conf
    ```
 
-   Generate password hashes with:
+   Generate password hashes with `openssl` directly:
 
    ```sh
    openssl passwd -6 'your-password-here'
+   ```
+
+   or use the helper, which prompts for the password and writes the hash
+   straight into the right line of `void-install.conf`:
+
+   ```sh
+   ./generate-password.sh root   # sets ROOT_PASSWORD_HASH
+   ./generate-password.sh user   # sets USER_PASSWORD_HASH
    ```
 
    Example filled-in `void-install.conf` (US keymap, Vienna timezone;

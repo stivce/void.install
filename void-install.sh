@@ -36,6 +36,7 @@ check_requirements() {
   done
 
   [ -d /sys/firmware/efi ] || die "Not booted in UEFI mode — this script only supports UEFI installs."
+  [ -f "$SCRIPT_DIR/chroot-setup.sh" ] || die "chroot-setup.sh not found next to void-install.sh."
 }
 
 check_network() {
@@ -240,36 +241,7 @@ prepare_chroot_env() {
 # ---------------------------------------------------------------------------
 
 write_chroot_script() {
-  cat >"$MNT/root/void-chroot-setup.sh" <<'CHROOT_EOF'
-#!/usr/bin/env bash
-set -euo pipefail
-
-echo "$CHR_HOSTNAME" > /etc/hostname
-ln -sf "/usr/share/zoneinfo/$CHR_TIMEZONE" /etc/localtime
-
-echo "en_US.UTF-8 UTF-8" >> /etc/default/libc-locales
-xbps-reconfigure -f glibc-locales
-echo "LANG=en_US.UTF-8" > /etc/locale.conf
-
-sed -i "s/^KEYMAP=.*/KEYMAP=\"$CHR_KEYMAP\"/" /etc/rc.conf 2>/dev/null \
-  || echo "KEYMAP=\"$CHR_KEYMAP\"" >> /etc/rc.conf
-
-# shellcheck disable=SC2086
-xbps-install -Sy $CHR_PACKAGES >/dev/null
-sed -i 's/^# *%wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/' /etc/sudoers
-
-ln -sf /etc/sv/dhcpcd /etc/service/
-ln -sf /etc/sv/sshd /etc/service/
-
-useradd -m -G wheel -s /bin/bash "$CHR_USERNAME"
-echo "root:$CHR_ROOT_HASH" | chpasswd -e
-echo "$CHR_USERNAME:$CHR_USER_HASH" | chpasswd -e
-
-grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=void --recheck
-grub-mkconfig -o /boot/grub/grub.cfg
-
-xbps-reconfigure -fa
-CHROOT_EOF
+  cp "$SCRIPT_DIR/chroot-setup.sh" "$MNT/root/void-chroot-setup.sh"
   chmod +x "$MNT/root/void-chroot-setup.sh"
 }
 
