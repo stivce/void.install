@@ -18,7 +18,9 @@ sed -i "s/^KEYMAP=.*/KEYMAP=\"$CHR_KEYMAP\"/" /etc/rc.conf 2>/dev/null \
 
 # shellcheck disable=SC2086
 xbps-install -Sy $CHR_PACKAGES >/dev/null
-sed -i 's/^# *%wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/' /etc/sudoers
+sed -i 's/^# *%wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
+grep -q '^%wheel ALL=(ALL:ALL) ALL' /etc/sudoers \
+  || { echo "Failed to enable wheel group in /etc/sudoers" >&2; exit 1; }
 
 ln -sf /etc/sv/dhcpcd /etc/runit/runsvdir/default/
 ln -sf /etc/sv/sshd /etc/runit/runsvdir/default/

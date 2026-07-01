@@ -15,7 +15,7 @@ readonly REPO="https://repo-default.voidlinux.org/current"
 
 readonly REQUIRED_BINARIES=(sfdisk mkfs.btrfs mkfs.vfat xbps-install chroot blkid blockdev udevadm)
 readonly REQUIRED_CONF_VARS=(HOSTNAME USERNAME USER_PASSWORD_HASH TIMEZONE KEYMAP)
-readonly CHROOT_PACKAGES=(sudo grub-x86_64-efi python3 openssh btrfs-progs fastfetch)
+readonly CHROOT_PACKAGES=(sudo grub-x86_64-efi python3 openssh btrfs-progs fastfetch git)
 
 log() { printf '\n\033[1;32m==>\033[0m %s\n' "$*"; }
 die() { printf '\n\033[1;31mxx\033[0m %s\n' "$*" >&2; exit 1; }
