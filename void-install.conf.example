@@ -1,0 +1,24 @@
+# Copy this file to void-install.conf and fill in your own values.
+# void-install.conf is gitignored so real secrets/hostnames don't get committed.
+#
+# Password hashes must be quoted with SINGLE quotes — they contain literal
+# '$' characters which bash would otherwise try to expand as variables.
+#
+# Generate a hash with:
+#   openssl passwd -6 'your-password-here'
+
+HOSTNAME=voidbox
+USERNAME=alice
+TIMEZONE=Europe/Vienna
+KEYMAP=us
+
+# Locale is hardcoded to en_US.UTF-8 by the installer, independent of keymap.
+
+ROOT_PASSWORD_HASH='$6$3kQ9mZs1$V1n8pSJ7dQmY0kLrTfXaGz9cWn1oHqB5vRt2sYlUeAiP0jXwCkNzMdVbGoRq8fJhSl.4tWzYnKp0'
+USER_PASSWORD_HASH='$6$7hLp2Xr4$Kq9wTbHn3sVdRmZ8cJfLp1eXaGz0oYnQtWbUiRkDvSlPmXjNc2FhYzLq5rTgBoWn9sKvXm1'
+
+# Disk layout, all sizes in MiB. These are the defaults if left unset —
+# uncomment to override.
+# BOOT_SIZE_MB=254
+# SWAP_SIZE_MB=8192
+# MIN_ROOT_MB=4096
