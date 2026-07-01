@@ -23,8 +23,9 @@ add whatever else you want after first boot.
 - `void-install.sh` — the installer; run this on the live ISO
 - `chroot-setup.sh` — the part that runs inside the target system via
   `chroot`; must stay next to `void-install.sh`, not run standalone
-- `generate-password.sh` — optional helper to hash a password and write it
-  into `void.cfg` (see below)
+- `generate-password.sh` — hashes a password and writes it into `void.cfg`;
+  can be run standalone ahead of time, or gets called automatically by
+  `void-install.sh` if `USER_PASSWORD_HASH` is missing
 - `void.cfg.example` — copy to `void.cfg` and fill in
 
 ## Requirements
@@ -56,6 +57,12 @@ add whatever else you want after first boot.
    ```sh
    cp void.cfg.example void.cfg
    ```
+
+   Passwords are the one thing you don't have to fill in ahead of time —
+   if `USER_PASSWORD_HASH` is left blank, `void-install.sh` will prompt
+   for it itself (via `generate-password.sh`) and write it back into
+   `void.cfg` before continuing. Everything else below is optional
+   convenience for setting it up ahead of time.
 
    Generate password hashes with `openssl` directly:
 

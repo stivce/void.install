@@ -37,6 +37,7 @@ check_requirements() {
 
   [ -d /sys/firmware/efi ] || die "Not booted in UEFI mode — this script only supports UEFI installs."
   [ -f "$SCRIPT_DIR/chroot-setup.sh" ] || die "chroot-setup.sh not found next to void-install.sh."
+  [ -x "$SCRIPT_DIR/generate-password.sh" ] || die "generate-password.sh not found (or not executable) next to void-install.sh."
 }
 
 check_network() {
@@ -56,6 +57,13 @@ load_config() {
   [ -f "$CONF" ] || die "Config file not found: $CONF (copy void.cfg.example and edit it)."
   # shellcheck disable=SC1090
   source "$CONF"
+
+  if [ -z "${USER_PASSWORD_HASH:-}" ]; then
+    log "USER_PASSWORD_HASH not set in $CONF — prompting for it now."
+    "$SCRIPT_DIR/generate-password.sh" user "$CONF"
+    # shellcheck disable=SC1090
+    source "$CONF"
+  fi
 
   local var
   for var in "${REQUIRED_CONF_VARS[@]}"; do
