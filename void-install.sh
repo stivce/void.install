@@ -13,7 +13,7 @@ readonly SCRIPT_DIR
 readonly MNT="/mnt"
 readonly REPO="https://repo-default.voidlinux.org/current"
 
-readonly REQUIRED_BINARIES=(parted mkfs.btrfs mkfs.vfat xbps-install chroot blkid partprobe udevadm)
+readonly REQUIRED_BINARIES=(sfdisk mkfs.btrfs mkfs.vfat xbps-install chroot blkid partprobe udevadm)
 readonly REQUIRED_CONF_VARS=(HOSTNAME USERNAME USER_PASSWORD_HASH ROOT_PASSWORD_HASH TIMEZONE KEYMAP)
 readonly CHROOT_PACKAGES=(sudo grub-x86_64-efi python3 openssh btrfs-progs fastfetch)
 
@@ -153,6 +153,10 @@ confirm_wipe() {
 # Partition, format, mount
 # ---------------------------------------------------------------------------
 
+readonly GUID_ESP="C12A7328-F81F-11D2-BA4B-00A0C93EC93B"
+readonly GUID_SWAP="0657FD6D-A4AB-43C4-84E5-0933C84B4F4F"
+readonly GUID_LINUX="0FC63DAF-8483-4772-8E79-3D69D8477DE4"
+
 compute_partition_layout() {
   local suffix=""
   case "$DISK" in
@@ -160,16 +164,12 @@ compute_partition_layout() {
   esac
 
   ESP_PART="${DISK}${suffix}1"
-  ESP_END_MB=$((1 + BOOT_SIZE_MB))
-
   if [ "$SWAP_SIZE_MB" -gt 0 ]; then
     SWAP_PART="${DISK}${suffix}2"
     ROOT_PART="${DISK}${suffix}3"
-    SWAP_END_MB=$((ESP_END_MB + SWAP_SIZE_MB))
   else
     SWAP_PART=""
     ROOT_PART="${DISK}${suffix}2"
-    SWAP_END_MB="$ESP_END_MB"
   fi
 }
 
@@ -178,13 +178,16 @@ partition_disk() {
 
   log "Partitioning $DISK (GPT: ${BOOT_SIZE_MB}MiB boot + ${SWAP_SIZE_MB}MiB swap + btrfs root)..."
 
-  local parted_args=(mklabel gpt mkpart ESP fat32 1MiB "${ESP_END_MB}MiB" set 1 esp on)
-  if [ -n "$SWAP_PART" ]; then
-    parted_args+=(mkpart swap linux-swap "${ESP_END_MB}MiB" "${SWAP_END_MB}MiB")
-  fi
-  parted_args+=(mkpart root btrfs "${SWAP_END_MB}MiB" 100%)
+  {
+    echo "label: gpt"
+    echo
+    echo "size=${BOOT_SIZE_MB}MiB, type=${GUID_ESP}, name=\"ESP\""
+    if [ -n "$SWAP_PART" ]; then
+      echo "size=${SWAP_SIZE_MB}MiB, type=${GUID_SWAP}, name=\"swap\""
+    fi
+    echo "type=${GUID_LINUX}, name=\"root\""
+  } | sfdisk "$DISK"
 
-  parted -s "$DISK" -- "${parted_args[@]}"
   partprobe "$DISK"
   udevadm settle
 }
