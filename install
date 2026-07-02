@@ -13,9 +13,9 @@ readonly SCRIPT_DIR
 readonly MNT="/mnt"
 readonly REPO="https://repo-default.voidlinux.org/current"
 
-readonly REQUIRED_BINARIES=(sfdisk mkfs.btrfs mkfs.vfat xbps-install chroot blkid udevadm curl)
+readonly REQUIRED_BINARIES=(sfdisk mkfs.ext4 mkfs.vfat xbps-install chroot blkid udevadm curl)
 readonly REQUIRED_CONF_VARS=(HOSTNAME USERNAME USER_PASSWORD_HASH TIMEZONE KEYMAP)
-readonly CHROOT_PACKAGES=(sudo grub-x86_64-efi python3 openssh btrfs-progs fastfetch git)
+readonly CHROOT_PACKAGES=(sudo grub-x86_64-efi python3 openssh fastfetch git)
 
 log() { printf '\n\033[1;32m==>\033[0m %s\n' "$*"; }
 die() { printf '\n\033[1;31mxx\033[0m %s\n' "$*" >&2; exit 1; }
@@ -193,7 +193,7 @@ compute_partition_layout() {
 partition_disk() {
   disk_in_use "$DISK" && die "$DISK appears to be in use (mounted or active swap) — refusing to partition it."
 
-  log "Partitioning $DISK (GPT: ${BOOT_SIZE_MB}MiB boot + ${SWAP_SIZE_MB}MiB swap + btrfs root)..."
+  log "Partitioning $DISK (GPT: ${BOOT_SIZE_MB}MiB boot + ${SWAP_SIZE_MB}MiB swap + ext4 root)..."
 
   {
     echo "label: gpt"
@@ -217,7 +217,7 @@ format_partitions() {
   if [ -n "$SWAP_PART" ]; then
     mkswap -L swap "$SWAP_PART" >/dev/null
   fi
-  mkfs.btrfs -f -L void "$ROOT_PART"
+  mkfs.ext4 -F -L void "$ROOT_PART"
 }
 
 mount_filesystems() {
@@ -247,7 +247,7 @@ write_fstab() {
     xgenfstab -U "$MNT" >"$MNT/etc/fstab"
   else
     {
-      echo "UUID=$(blkid -s UUID -o value "$ROOT_PART") / btrfs defaults,noatime 0 1"
+      echo "UUID=$(blkid -s UUID -o value "$ROOT_PART") / ext4 defaults,noatime 0 1"
       echo "UUID=$(blkid -s UUID -o value "$ESP_PART") /boot/efi vfat defaults 0 2"
     } >>"$MNT/etc/fstab"
   fi

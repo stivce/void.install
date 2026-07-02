@@ -5,10 +5,9 @@ Minimal unattended-ish installer for Void Linux (glibc, UEFI only).
 ## What it does
 
 - Wipes and partitions the disk you pick: GPT, 254MiB ESP (boot) +
-  8GiB swap partition + btrfs root (rest of the disk, single subvolume,
-  no snapshotting layout)
+  8GiB swap partition + ext4 root (rest of the disk)
 - Installs `base-system` via xbps, plus `sudo`, `python3` (so Ansible can
-  manage the box afterward), `openssh`, `btrfs-progs`, `fastfetch`, and `git`
+  manage the box afterward), `openssh`, `fastfetch`, and `git`
 - Sets hostname, timezone, keymap, locale (en_US.UTF-8)
 - Creates root and one regular user (wheel + sudo) from pre-hashed passwords
 - Installs and configures GRUB (UEFI)
