@@ -241,7 +241,10 @@ install_base_system() {
 write_fstab() {
   log "Writing fstab..."
   if command -v xgenfstab >/dev/null 2>&1; then
-    xgenfstab -U "$MNT" >>"$MNT/etc/fstab"
+    # replace, don't append: xgenfstab emits a complete fstab including its
+    # own tmpfs /tmp line, and the stock base-system fstab already has one —
+    # appending would leave /tmp listed twice
+    xgenfstab -U "$MNT" >"$MNT/etc/fstab"
   else
     {
       echo "UUID=$(blkid -s UUID -o value "$ROOT_PART") / btrfs defaults,noatime 0 1"
