@@ -158,12 +158,20 @@ check_disk_size() {
 }
 
 confirm_wipe() {
-  local confirm
-  read -rp "This will ERASE ALL DATA on $DISK ($(lsblk -dno SIZE "$DISK")). Continue? [y/N] " confirm
-  case "$confirm" in
-    y | Y | yes | YES) ;;
-    *) die "Aborting, nothing touched." ;;
-  esac
+  local size confirm
+  size=$(lsblk -dno SIZE "$DISK")
+  if command -v dialog >/dev/null 2>&1; then
+    dialog --clear --defaultno --yes-label "Erase" --no-label "Abort" \
+      --yesno "This will ERASE ALL DATA on $DISK ($size).\n\nContinue?" 9 60 \
+      || { clear; die "Aborting, nothing touched."; }
+    clear
+  else
+    read -rp "This will ERASE ALL DATA on $DISK ($size). Continue? [y/N] " confirm
+    case "$confirm" in
+      y | Y | yes | YES) ;;
+      *) die "Aborting, nothing touched." ;;
+    esac
+  fi
 }
 
 # ---------------------------------------------------------------------------

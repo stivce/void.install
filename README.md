@@ -108,7 +108,8 @@ add whatever else you want after first boot.
    partition or active swap — which covers the live boot media itself,
    however it was booted (USB stick, ISO, etc).
 
-6. Confirm the wipe (`y`/`N`). Everything else runs unattended.
+6. Confirm the wipe (`dialog` Erase/Abort box, or `y`/`N` without it).
+   Everything else runs unattended.
 
 7. When it finishes, the installer asks whether to reboot into the new
    system right away (`dialog` yes/no, or a `y`/`N` prompt without it).
