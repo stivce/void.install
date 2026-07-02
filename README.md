@@ -20,13 +20,13 @@ add whatever else you want after first boot.
 
 ## Files
 
-- `void-install.sh` — the installer; run this on the live ISO
+- `install` — the installer; run this on the live ISO
 - `chroot-setup.sh` — the part that runs inside the target system via
-  `chroot`; must stay next to `void-install.sh`, not run standalone
+  `chroot`; must stay next to `install`, not run standalone
 - `generate-password.sh` — hashes a password and writes it into `void.cfg`;
   can be run standalone ahead of time, or gets called automatically by
-  `void-install.sh` if `USER_PASSWORD_HASH` is missing
-- `void.cfg.example` — copy to `void.cfg` and fill in
+  `install` if `USER_PASSWORD_HASH` is missing
+- `void.cfg` — the config the installer reads; edit it before running
 
 ## Requirements
 
@@ -52,17 +52,14 @@ add whatever else you want after first boot.
    cd void.install
    ```
 
-3. Copy the example config and fill it in:
-
-   ```sh
-   cp void.cfg.example void.cfg
-   ```
+3. Edit `void.cfg` with your hostname, username, timezone and keymap.
 
    Passwords are the one thing you don't have to fill in ahead of time —
-   if `USER_PASSWORD_HASH` is left blank, `void-install.sh` will prompt
-   for it itself (via `generate-password.sh`) and write it back into
-   `void.cfg` before continuing. Everything else below is optional
-   convenience for setting it up ahead of time.
+   if `USER_PASSWORD_HASH` is left blank, `install` will prompt for it
+   itself (via `generate-password.sh`) and write it back into `void.cfg`
+   before continuing. Everything else below is optional convenience for
+   setting it up ahead of time. Since `void.cfg` is tracked in git,
+   avoid committing real password hashes — let the prompt handle them.
 
    Generate password hashes with `openssl` directly:
 
@@ -82,8 +79,8 @@ add whatever else you want after first boot.
    locale is hardcoded to en_US.UTF-8 by the script regardless of keymap):
 
    ```sh
-   HOSTNAME=voidbox
-   USERNAME=alice
+   HOSTNAME=voyd
+   USERNAME=sn0w
    TIMEZONE=Europe/Vienna
    KEYMAP=us
 
@@ -103,8 +100,7 @@ add whatever else you want after first boot.
 4. Run the installer as root:
 
    ```sh
-   chmod +x void-install.sh
-   ./void-install.sh
+   ./install
    ```
 
 5. Pick the target disk from the menu (uses `dialog` if present, otherwise

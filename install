@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
-# void-install.sh — minimal unattended Void Linux (glibc, UEFI) installer.
+# install — minimal unattended Void Linux (glibc, UEFI) installer.
 #
 # Run as root from the Void live ISO. Reads hostname/user/timezone/keymap/
-# password hashes from a config file (see void.cfg.example); the
-# only interactive steps are picking the disk (TUI) and confirming the wipe.
+# password hashes from void.cfg; the only interactive steps are picking
+# the disk (TUI) and confirming the wipe.
 
 set -euo pipefail
 
@@ -13,7 +13,7 @@ readonly SCRIPT_DIR
 readonly MNT="/mnt"
 readonly REPO="https://repo-default.voidlinux.org/current"
 
-readonly REQUIRED_BINARIES=(sfdisk mkfs.btrfs mkfs.vfat xbps-install chroot blkid blockdev udevadm)
+readonly REQUIRED_BINARIES=(sfdisk mkfs.btrfs mkfs.vfat xbps-install chroot blkid udevadm curl)
 readonly REQUIRED_CONF_VARS=(HOSTNAME USERNAME USER_PASSWORD_HASH TIMEZONE KEYMAP)
 readonly CHROOT_PACKAGES=(sudo grub-x86_64-efi python3 openssh btrfs-progs fastfetch git)
 
@@ -36,12 +36,11 @@ check_requirements() {
   done
 
   [ -d /sys/firmware/efi ] || die "Not booted in UEFI mode — this script only supports UEFI installs."
-  [ -f "$SCRIPT_DIR/chroot-setup.sh" ] || die "chroot-setup.sh not found next to void-install.sh."
-  [ -x "$SCRIPT_DIR/generate-password.sh" ] || die "generate-password.sh not found (or not executable) next to void-install.sh."
+  [ -f "$SCRIPT_DIR/chroot-setup.sh" ] || die "chroot-setup.sh not found next to the install script."
+  [ -x "$SCRIPT_DIR/generate-password.sh" ] || die "generate-password.sh not found (or not executable) next to the install script."
 }
 
 check_network() {
-  command -v curl >/dev/null 2>&1 || return 0
   curl -fsSL --max-time 10 "$REPO" -o /dev/null \
     || die "Could not reach $REPO — set up networking (dhcpcd/wpa_supplicant/iwctl) before running this script."
 }
@@ -54,7 +53,13 @@ validate_hash() {
 
 load_config() {
   CONF="${1:-$SCRIPT_DIR/void.cfg}"
-  [ -f "$CONF" ] || die "Config file not found: $CONF (copy void.cfg.example and edit it)."
+  [ -f "$CONF" ] || die "Config file not found: $CONF"
+  # bash auto-populates HOSTNAME, so a missing config value would otherwise
+  # silently pass the required-vars check with the live ISO's hostname
+  local var
+  for var in "${REQUIRED_CONF_VARS[@]}"; do
+    unset "$var"
+  done
   # shellcheck disable=SC1090
   source "$CONF"
 
@@ -65,7 +70,6 @@ load_config() {
     source "$CONF"
   fi
 
-  local var
   for var in "${REQUIRED_CONF_VARS[@]}"; do
     [ -n "${!var:-}" ] || die "Missing $var in $CONF"
   done
@@ -171,10 +175,10 @@ readonly GUID_SWAP="0657FD6D-A4AB-43C4-84E5-0933C84B4F4F"
 readonly GUID_LINUX="0FC63DAF-8483-4772-8E79-3D69D8477DE4"
 
 compute_partition_layout() {
+  # kernel convention: disks whose name ends in a digit (nvme0n1, mmcblk0,
+  # md0, nbd0, ...) get a "p" before the partition number
   local suffix=""
-  case "$DISK" in
-    *nvme* | *mmcblk*) suffix="p" ;;
-  esac
+  [[ "$DISK" == *[0-9] ]] && suffix="p"
 
   ESP_PART="${DISK}${suffix}1"
   if [ "$SWAP_SIZE_MB" -gt 0 ]; then
@@ -199,16 +203,20 @@ partition_disk() {
       echo "size=${SWAP_SIZE_MB}MiB, type=${GUID_SWAP}, name=\"swap\""
     fi
     echo "type=${GUID_LINUX}, name=\"root\""
-  } | sfdisk "$DISK"
+  } | sfdisk --wipe always --wipe-partitions always "$DISK"
 
-  blockdev --rereadpt "$DISK"
+  # sfdisk already told the kernel to re-read the table; a second
+  # BLKRRPART via `blockdev --rereadpt` races udev's partition probing
+  # and fails with EBUSY. Just wait for udev to finish the device nodes.
   udevadm settle
 }
 
 format_partitions() {
   log "Formatting partitions..."
   mkfs.vfat -F32 -n EFI "$ESP_PART"
-  [ -n "$SWAP_PART" ] && mkswap -L swap "$SWAP_PART" >/dev/null
+  if [ -n "$SWAP_PART" ]; then
+    mkswap -L swap "$SWAP_PART" >/dev/null
+  fi
   mkfs.btrfs -f -L void "$ROOT_PART"
 }
 
@@ -240,7 +248,9 @@ write_fstab() {
       echo "UUID=$(blkid -s UUID -o value "$ESP_PART") /boot/efi vfat defaults 0 2"
     } >>"$MNT/etc/fstab"
   fi
-  [ -n "$SWAP_PART" ] && echo "UUID=$(blkid -s UUID -o value "$SWAP_PART") swap swap defaults 0 0" >>"$MNT/etc/fstab"
+  if [ -n "$SWAP_PART" ]; then
+    echo "UUID=$(blkid -s UUID -o value "$SWAP_PART") swap swap defaults 0 0" >>"$MNT/etc/fstab"
+  fi
 }
 
 prepare_chroot_env() {

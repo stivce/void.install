@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # generate-password.sh — prompt for a password, hash it, write it into
-# void.cfg. Keeps void-install.sh itself fully non-interactive.
+# void.cfg. Keeps the install script itself fully non-interactive.
 #
 # Usage: ./generate-password.sh root|user [path/to/void.cfg]
 
@@ -21,7 +21,7 @@ case "$1" in
 esac
 
 CONF="${2:-$SCRIPT_DIR/void.cfg}"
-[ -f "$CONF" ] || die "$CONF not found — copy void.cfg.example to void.cfg first."
+[ -f "$CONF" ] || die "$CONF not found."
 
 command -v openssl >/dev/null 2>&1 || die "openssl is required to hash the password."
 
@@ -33,7 +33,8 @@ echo
 [ -n "$pass1" ] || die "Password cannot be empty."
 [ "$pass1" = "$pass2" ] || die "Passwords did not match."
 
-hash=$(openssl passwd -6 "$pass1")
+# -stdin keeps the plaintext out of ps-visible argv
+hash=$(openssl passwd -6 -stdin <<<"$pass1")
 unset pass1 pass2
 
 [[ "$hash" =~ ^\$[0-9A-Za-z]+\$[^$]+\$.+$ ]] || die "openssl produced an unexpected hash format: $hash"
