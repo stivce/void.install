@@ -110,7 +110,8 @@ add whatever else you want after first boot.
 
 6. Confirm the wipe (`y`/`N`). Everything else runs unattended.
 
-7. Reboot into the disk when it finishes.
+7. When it finishes, the installer asks whether to reboot into the new
+   system right away (`dialog` yes/no, or a `y`/`N` prompt without it).
 
 ## Notes
 

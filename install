@@ -4,7 +4,7 @@
 #
 # Run as root from the Void live ISO. Reads hostname/user/timezone/keymap/
 # password hashes from void.cfg; the only interactive steps are picking
-# the disk (TUI) and confirming the wipe.
+# the disk (TUI), confirming the wipe, and choosing whether to reboot.
 
 set -euo pipefail
 
@@ -295,7 +295,30 @@ finish() {
   log "Unmounting..."
   trap - EXIT
   umount -R "$MNT"
-  log "Done. Remove the install media and reboot into $DISK."
+  ask_reboot
+}
+
+ask_reboot() {
+  local answer
+  if command -v dialog >/dev/null 2>&1; then
+    if dialog --clear --yes-label "Reboot" --no-label "Exit" \
+      --yesno "Installation finished.\n\nRemove the install media and reboot into the new system on $DISK." 9 60; then
+      clear
+      log "Rebooting..."
+      reboot
+    fi
+    clear
+    log "Done. Remove the install media and reboot into $DISK when ready."
+  else
+    read -rp "Installation finished. Reboot into the new system now? [y/N] " answer
+    case "$answer" in
+      y | Y | yes | YES)
+        log "Rebooting..."
+        reboot
+        ;;
+      *) log "Done. Remove the install media and reboot into $DISK when ready." ;;
+    esac
+  fi
 }
 
 main() {

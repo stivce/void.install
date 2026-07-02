@@ -14,7 +14,8 @@ die() { printf '\n\033[1;31mxx\033[0m %s\n' "$*" >&2; exit 1; }
 usage() { die "Usage: $0 root|user [path/to/void.cfg]"; }
 
 [ $# -ge 1 ] || usage
-case "$1" in
+ACCOUNT="$1"
+case "$ACCOUNT" in
   root) VAR=ROOT_PASSWORD_HASH ;;
   user) VAR=USER_PASSWORD_HASH ;;
   *) usage ;;
@@ -25,10 +26,28 @@ CONF="${2:-$SCRIPT_DIR/void.cfg}"
 
 command -v openssl >/dev/null 2>&1 || die "openssl is required to hash the password."
 
-read -rsp "Password for $1: " pass1
-echo
-read -rsp "Confirm password: " pass2
-echo
+# --insecure shows one asterisk per typed character; without it the
+# passwordbox gives no feedback at all, which reads as a frozen prompt
+prompt_password_dialog() {
+  pass1=$(dialog --clear --stdout --insecure --passwordbox "Password for $ACCOUNT" 10 50) \
+    || { clear; die "Cancelled."; }
+  pass2=$(dialog --clear --stdout --insecure --passwordbox "Confirm password for $ACCOUNT" 10 50) \
+    || { clear; die "Cancelled."; }
+  clear
+}
+
+prompt_password_fallback() {
+  read -rsp "Password for $ACCOUNT: " pass1
+  echo
+  read -rsp "Confirm password: " pass2
+  echo
+}
+
+if command -v dialog >/dev/null 2>&1; then
+  prompt_password_dialog
+else
+  prompt_password_fallback
+fi
 
 [ -n "$pass1" ] || die "Password cannot be empty."
 [ "$pass1" = "$pass2" ] || die "Passwords did not match."
